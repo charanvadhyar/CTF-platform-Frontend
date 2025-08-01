@@ -104,11 +104,11 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
 
     switch (position) {
       case "top":
-        return `w-full min-h-[100px] max-h-[200px] mb-6 ${baseClasses}`
+        return `w-[300px] h-[250px] mx-auto mb-6 ${baseClasses}`
       case "bottom":
-        return `w-full min-h-[100px] max-h-[200px] mt-6 ${baseClasses}`
+        return `w-[320px] h-[50px] mx-auto mt-6 ${baseClasses}`
       case "sidebar":
-        return `fixed right-4 top-1/2 transform -translate-y-1/2 w-40 h-80 z-20 hidden lg:block ${baseClasses}`
+        return `fixed right-4 top-1/2 transform -translate-y-1/2 w-[160px] h-[600px] z-20 hidden lg:block ${baseClasses}`
       case "banner":
         return `w-full min-h-[120px] max-h-[250px] my-6 ${baseClasses}`
       default:
