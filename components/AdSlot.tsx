@@ -51,11 +51,6 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
     }
   }
 
-  // Don't render anything if ad is not active, has no code, or is still loading
-  if (!isActive || !adCode || isLoading) {
-    return null
-  }
-  
   // Execute ad scripts when the component mounts and adCode is available
   useEffect(() => {
     if (!adCode || !isActive || isLoading || !adContainerRef.current) return
@@ -98,6 +93,11 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
     // Execute scripts with a small delay to ensure DOM is ready
     setTimeout(executeScripts, 100)
   }, [adCode, isActive, isLoading, position])
+  
+  // Don't render anything if ad is not active, has no code, or is still loading
+  if (!isActive || !adCode || isLoading) {
+    return null
+  }
 
   const getPositionClasses = () => {
     const baseClasses = "overflow-hidden rounded-lg border border-gray-200 bg-gray-50"
