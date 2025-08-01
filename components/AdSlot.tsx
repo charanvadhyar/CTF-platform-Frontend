@@ -1,59 +1,73 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef } from "react"
 
 interface AdSlotProps {
   position: "top" | "bottom" | "sidebar" | "banner"
+  adCode?: string
   className?: string
 }
 
-export default function AdSlot({ position, className = "" }: AdSlotProps) {
-  const [adCode, setAdCode] = useState<string>("")
-  const [isActive, setIsActive] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+// Hard-coded ad codes for each position
+const AD_CODES = {
+  top: `<script type="text/javascript">
+	atOptions = {
+		'key' : '16d1eb874261c3ac6dd03a5624272dce',
+		'format' : 'iframe',
+		'height' : 250,
+		'width' : 300,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/16d1eb874261c3ac6dd03a5624272dce/invoke.js"></script>`,
+  
+  bottom: `<script type="text/javascript">
+	atOptions = {
+		'key' : '5fae580fc3d88c905c640069f681d1a2',
+		'format' : 'iframe',
+		'height' : 50,
+		'width' : 320,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/5fae580fc3d88c905c640069f681d1a2/invoke.js"></script>`,
+  
+  sidebar: `<script type="text/javascript">
+	atOptions = {
+		'key' : '6ce1db0d62937f6bbcfd956806c8afbc',
+		'format' : 'iframe',
+		'height' : 600,
+		'width' : 160,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/6ce1db0d62937f6bbcfd956806c8afbc/invoke.js"></script>`,
+  
+  banner: `<script type="text/javascript">
+	atOptions = {
+		'key' : 'd7f30a58bb6a3c3e49c99290d8a23a34',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/d7f30a58bb6a3c3e49c99290d8a23a34/invoke.js"></script>`
+};
+
+export default function AdSlot({ position, adCode = "", className = "" }: AdSlotProps) {
+  // Use the provided adCode if available, otherwise use the default for the position
+  const finalAdCode = adCode || AD_CODES[position] || ""
   const adContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    loadAdConfig()
+    console.log(`AdSlot - Rendering ad for position: ${position}`)
+    console.log(`AdSlot - Using direct ad code for ${position}`)
   }, [position])
-
-  const loadAdConfig = async () => {
-    try {
-      setIsLoading(true)
-      console.log(`AdSlot - Loading ad for position: ${position}`)
-      const response = await fetch(`/api/ads?position=${position}`)
-
-      if (response.ok) {
-        const adData = await response.json()
-        console.log(`AdSlot - Received ad data for ${position}:`, adData)
-        console.log(`AdSlot - Raw ad code content:`, adData.code)
-        setAdCode(adData.code || "")
-        setIsActive(adData.active || false)
-      } else {
-        console.log(`AdSlot - Failed to load ad from API, status: ${response.status}`)
-        // Fallback to localStorage for offline functionality
-        const storedAds = localStorage.getItem("adConfig")
-        if (storedAds) {
-          const ads = JSON.parse(storedAds)
-          const ad = ads.find((a: any) => a.position === position)
-          if (ad) {
-            console.log(`AdSlot - Using localStorage fallback for ${position}`)
-            setAdCode(ad.code || "")
-            setIsActive(ad.active || false)
-          }
-        }
-      }
-    } catch (error) {
-      console.error(`Error loading ad for position ${position}:`, error)
-      setIsActive(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   // Execute ad scripts when the component mounts and adCode is available
   useEffect(() => {
-    if (!adCode || !isActive || isLoading || !adContainerRef.current) return
+    if (!finalAdCode || !adContainerRef.current) return
     
     console.log('Executing ad scripts for position:', position)
     
@@ -62,7 +76,7 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
       try {
         // Parse the HTML content
         const parser = new DOMParser()
-        const doc = parser.parseFromString(adCode, 'text/html')
+        const doc = parser.parseFromString(finalAdCode, 'text/html')
         const scripts = doc.querySelectorAll('script')
         
         // Execute each script
@@ -92,10 +106,10 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
     
     // Execute scripts with a small delay to ensure DOM is ready
     setTimeout(executeScripts, 100)
-  }, [adCode, isActive, isLoading, position])
+  }, [finalAdCode, position])
   
-  // Don't render anything if ad is not active, has no code, or is still loading
-  if (!isActive || !adCode || isLoading) {
+  // Don't render anything if there's no ad code
+  if (!finalAdCode) {
     return null
   }
 
@@ -121,7 +135,7 @@ export default function AdSlot({ position, className = "" }: AdSlotProps) {
       {/* First div for displaying the HTML content */}
       <div
         className="w-full h-full flex items-center justify-center"
-        dangerouslySetInnerHTML={{ __html: adCode }}
+        dangerouslySetInnerHTML={{ __html: finalAdCode }}
         style={{
           // Additional safety measures
           maxWidth: "100%",

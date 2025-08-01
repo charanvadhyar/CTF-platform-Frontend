@@ -20,5 +20,6 @@ export default function ConditionalAdSlot({ position, className }: ConditionalAd
     return null
   }
   
-  return <AdSlot position={position} className={className} />
+  // We don't need to pass adCode - AdSlot will use its default codes based on position
+  return <AdSlot position={position} className={className} adCode="" />
 }
